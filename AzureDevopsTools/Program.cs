@@ -3,10 +3,12 @@ using Microsoft.VisualStudio.Services.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AzureDevopsTools
 {
@@ -25,7 +27,13 @@ namespace AzureDevopsTools
             //CallAPIDelete($"{BASE_URL}/DS%20OLT/_apis/wit/classificationnodes/iterations/Iteration%20z?api-version=5.0");
 
             //CreateIteration("Iteration z", DateTime.Now.AddYears(1), DateTime.Now.AddYears(2));
-            ProjectList();
+            AddIterationToAllProjects(
+                new AzureIteration() 
+                    { 
+                        Name="Iteration 18", 
+                        StartDate=DateTime.ParseExact("09/05/2022", "dd/MM/yyyy", null),
+                        EndDate = DateTime.ParseExact("22/05/2022", "dd/MM/yyyy", null),
+                    });
         }
 
         static async void CreateIteration(string iterationName, string projectName, string teamName, DateTime stDate, DateTime endDate)
@@ -43,7 +51,23 @@ namespace AzureDevopsTools
             CallAPIDelete($"{BASE_URL}/{projectName}/_apis/wit/classificationnodes/iterations/{iterationName}?api-version=5.0");
         }
 
-        static async void ProjectList()
+        static async Task<List<AzureObject>> GetTeamsAsync(string projectName)
+        {
+            var teamsStr = CallAPIGet($"{BASE_URL}/_apis/projects/{projectName}/teams?api-version=5.0");
+            var teamsObj = JObject.Parse(teamsStr);
+            var teamsArr = JArray.Parse(teamsObj["value"].ToString());
+            return teamsArr.ToObject<List<AzureObject>>();
+        }
+
+        static async Task<List<AzureObject>> GetIterationsAsync(string projectName, string teamName)
+        {
+            var iterationsStr = CallAPIGet($"{BASE_URL}/{projectName}/{teamName}/_apis/work/teamsettings/iterations?api-version=5.0");
+            var iterationsObj = JObject.Parse(iterationsStr);
+            var iterationsArr = JArray.Parse(iterationsObj["value"].ToString());
+            return iterationsArr.ToObject<List<AzureObject>>();
+        }
+
+        static async void AddIterationToAllProjects(AzureIteration iteration)
         {
             try
             {
@@ -51,16 +75,15 @@ namespace AzureDevopsTools
                 VssBasicCredential credentials = new VssBasicCredential("", PERSONAL_ACCESS_TOKEN);
                 using ProjectHttpClient projectHttpClient = new ProjectHttpClient(uri, credentials);
                 IEnumerable<TeamProjectReference> projects = projectHttpClient.GetProjects().Result;
-                foreach (var pr in projects)
+                foreach (var project in projects)
                 {
 
-                    var result = CallAPIGet($"{BASE_URL}/_apis/projects/{pr.Name}/teams?api-version=5.0");
-                    var obj = JObject.Parse(result);
-                    var arr = JArray.Parse(obj["value"].ToString());
-                    //DeleteIteration("Iteration x", pr.Name);
-                    foreach (var item in arr) 
+                    var teamsArr = await GetTeamsAsync(project.Name);
+                    foreach (var team in teamsArr) 
                     {
-                        //CreateIteration("Iteration x", pr.Name, item["name"].ToString(), DateTime.Now.AddYears(1), DateTime.Now.AddYears(2));
+                        var iterations = await GetIterationsAsync(project.Name, team.Name.ToString());
+                        if (iterations.Any(x => x.Name == iteration.Name) == false)
+                            CreateIteration(iteration.Name, project.Name, team.Name, iteration.StartDate, iteration.EndDate);
                     }
                 }
             }
@@ -133,5 +156,17 @@ namespace AzureDevopsTools
                 }
             }
         }
+    }
+
+    public class AzureObject 
+    {
+        public string Name { get; set; }
+    }
+
+    public class AzureIteration
+    {
+        public string Name { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
     }
 }
