@@ -30,20 +30,28 @@ namespace AzureDevopsTools
             AddIterationToAllProjects(
                 new AzureIteration() 
                     { 
-                        Name="Iteration 18", 
-                        StartDate=DateTime.ParseExact("09/05/2022", "dd/MM/yyyy", null),
-                        EndDate = DateTime.ParseExact("22/05/2022", "dd/MM/yyyy", null),
+                        Name="Iteration 19", 
+                        StartDate=DateTime.ParseExact("23/05/2022", "dd/MM/yyyy", null),
+                        EndDate = DateTime.ParseExact("05/06/2022", "dd/MM/yyyy", null),
                     });
         }
 
-        static async void CreateIteration(string iterationName, string projectName, string teamName, DateTime stDate, DateTime endDate)
+        static void CreateIteration(string iterationName, string projectName, string teamName, DateTime stDate, DateTime endDate)
         {
-            var result = CallAPIPost($"{BASE_URL}/{projectName}/_apis/wit/classificationnodes/iterations?api-version=5.0",
-                new { name = iterationName, attributes = new { startDate = stDate, finishDate = endDate } });
-            var obj = JObject.Parse(result);
-            var identifier = obj["identifier"].ToString();
-            result = CallAPIPost($"{BASE_URL}/{projectName}/{teamName}/_apis/work/teamsettings/iterations?api-version=5.0",
-                new { id = identifier });
+            try
+            {
+                var result = CallAPIPost($"{BASE_URL}/{projectName}/_apis/wit/classificationnodes/iterations?api-version=5.0",
+            new { name = iterationName, attributes = new { startDate = stDate, finishDate = endDate } });
+                var obj = JObject.Parse(result);
+                var identifier = obj["identifier"].ToString();
+                result = CallAPIPost($"{BASE_URL}/{projectName}/{teamName}/_apis/work/teamsettings/iterations?api-version=5.0",
+                    new { id = identifier });
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex.Message);
+            }
         }
 
         static async void DeleteIteration(string iterationName, string projectName)
@@ -84,12 +92,14 @@ namespace AzureDevopsTools
                         var iterations = await GetIterationsAsync(project.Name, team.Name.ToString());
                         if (iterations.Any(x => x.Name == iteration.Name) == false)
                             CreateIteration(iteration.Name, project.Name, team.Name, iteration.StartDate, iteration.EndDate);
+                        else
+                            Console.WriteLine($"Iteration Exists! {project.Name}, {iteration.Name}");
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
+                Console.WriteLine(ex.Message);
             }
         }
 
