@@ -14,7 +14,7 @@ namespace AzureDevopsTools
 {
     internal class Program
     {
-        static string PERSONAL_ACCESS_TOKEN = "duev54spffquc66u7nazgt75zmx52seokpol2agdwks34wfcxaja";
+        static string PERSONAL_ACCESS_TOKEN = "akjzmcutjw5tp35fxj5lzjtf366eps2vno245rlbhzlhkvhwnm6q";
         static string BASE_URL = "https://azure.dstrace.com/Yazilim";
         
         static void Main(string[] args)
@@ -30,9 +30,9 @@ namespace AzureDevopsTools
             AddIterationToAllProjects(
                 new AzureIteration() 
                     { 
-                        Name="Iteration 19", 
-                        StartDate=DateTime.ParseExact("23/05/2022", "dd/MM/yyyy", null),
-                        EndDate = DateTime.ParseExact("05/06/2022", "dd/MM/yyyy", null),
+                        Name="Iteration 24", 
+                        StartDate=DateTime.ParseExact("08/08/2022", "dd/MM/yyyy", null),
+                        EndDate = DateTime.ParseExact("21/08/2022", "dd/MM/yyyy", null),
                     });
         }
 
