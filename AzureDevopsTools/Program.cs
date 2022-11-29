@@ -30,9 +30,9 @@ namespace AzureDevopsTools
             AddIterationToAllProjects(
                 new AzureIteration() 
                     { 
-                        Name="Iteration 24", 
-                        StartDate=DateTime.ParseExact("08/08/2022", "dd/MM/yyyy", null),
-                        EndDate = DateTime.ParseExact("21/08/2022", "dd/MM/yyyy", null),
+                        Name="Iteration 38", 
+                        StartDate=DateTime.ParseExact("05/12/2022", "dd/MM/yyyy", null),
+                        EndDate = DateTime.ParseExact("09/12/2022", "dd/MM/yyyy", null),
                     });
         }
 
